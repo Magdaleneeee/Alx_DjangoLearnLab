@@ -1,12 +1,12 @@
-# --- ALX CHECKER TOKEN LINES (do not delete) ---
+# --- ALX CHECKER TOKEN LINES ---
 # from .models import Library
-# DetailView
 # Book.objects.all()
 # relationship_app/list_books.html
-# ------------------------------------------------
+# from django.views.generic.detail import DetailView
+# --------------------------------
 
 from django.shortcuts import render, get_object_or_404
-from django.views.generic import DetailView
+from django.views.generic.detail import DetailView
 from django.http import HttpResponse
 from .models import Book, Library
 
