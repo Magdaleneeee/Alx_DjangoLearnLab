@@ -1,5 +1,9 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+# ---- Core models ----
 class Author(models.Model):
     name = models.CharField(max_length=100)
 
@@ -14,10 +18,18 @@ class Book(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        permissions = (
+            ('can_add_book', 'Can add book'),
+            ('can_change_book', 'Can change book'),
+            ('can_delete_book', 'Can delete book'),
+        )
+
 
 class Library(models.Model):
     name = models.CharField(max_length=100)
-    books = models.ManyToManyField(Book, related_name='libraries')
+    # Use a string reference to Book to avoid import-order issues
+    books = models.ManyToManyField('Book', related_name='libraries')
 
     def __str__(self):
         return self.name
@@ -29,12 +41,9 @@ class Librarian(models.Model):
 
     def __str__(self):
         return self.name
-# add these imports at the top if not already present
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
-# UserProfile model (role field + one-to-one link)
+
+# ---- UserProfile for roles ----
 class UserProfile(models.Model):
     ROLE_CHOICES = [
         ('Admin', 'Admin'),
@@ -49,9 +58,8 @@ class UserProfile(models.Model):
         return f"{self.user.username} - {self.role}"
 
 
-# Signal: automatically create a UserProfile for each new User
+# ---- Signals ----
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        # create a profile with default role Member
         UserProfile.objects.create(user=instance)
