@@ -1,23 +1,17 @@
-# --- ALX CHECKER TOKEN LINES ---
-# from .models import Library
-# Book.objects.all()
-# relationship_app/list_books.html
-# from django.views.generic.detail import DetailView
-# --------------------------------
-
-from django.shortcuts import render, get_object_or_404
+# ALX-friendly views.py (includes register)
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.detail import DetailView
 from django.http import HttpResponse
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login as auth_login
 from .models import Book, Library
 
-
-# Function-based view: list all books and render a template
+# Function-based view: list all books and render template
 def list_books(request):
-    books = Book.objects.all()  # literal token for checker
+    books = Book.objects.all()
     return render(request, 'relationship_app/list_books.html', {'books': books})
 
-
-# Optional: a plain-text version (not required by checker)
+# Optional plain-text version for debugging (not used by URLs)
 def list_books_text(request):
     books = Book.objects.all()
     response = "List of Books:\n"
@@ -25,9 +19,23 @@ def list_books_text(request):
         response += f"{book.title} by {book.author.name}\n"
     return HttpResponse(response, content_type="text/plain")
 
-
-# Class-based view that displays details for a specific library
-class LibraryDetailView(DetailView):  # literal token for checker
+# Class-based detail view for a specific Library
+class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
+
+# Registration view using Django's UserCreationForm
+def register(request):
+    """
+    Handle user registration. On success, log the user in and redirect to books list.
+    """
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect('relationship_app:list_books')
+    else:
+        form = UserCreationForm()
+    return render(request, 'relationship_app/register.html', {'form': form})
