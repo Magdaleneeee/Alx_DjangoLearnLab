@@ -125,6 +125,31 @@ SESSION_COOKIE_SECURE = True
 # Optional (enable only if you have HTTPS)
 SECURE_SSL_REDIRECT = False  # Change to True if you use HTTPS
 
+# -----------------------------
+# 🔒 Security Best Practices
+# -----------------------------
+
+# Disable debug mode in production
+DEBUG = False  # Change to True only during local development
+
+# Prevent browsers from guessing content types
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Prevent clickjacking attacks
+X_FRAME_OPTIONS = 'DENY'
+
+# Enable built-in XSS protection in browsers
+SECURE_BROWSER_XSS_FILTER = True
+
+# Ensure cookies are only sent via HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Example Content Security Policy (CSP)
+# You can install django-csp for stricter control later
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+CSP_SCRIPT_SRC = ("'self'",)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
