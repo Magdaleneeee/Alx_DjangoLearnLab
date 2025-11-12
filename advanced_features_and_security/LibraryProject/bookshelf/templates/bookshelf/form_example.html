@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Secure Form Example</title>
+    <title>Form Example</title>
 </head>
 <body>
-    <h2>Submit a Book</h2>
+    <h2>Secure Form</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
