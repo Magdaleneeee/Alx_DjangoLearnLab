@@ -1,3 +1,5 @@
+from bookshelf.models import Book
+
 # Delete the Book
 
 book = Book.objects.get(title="Nineteen Eighty-Four")
