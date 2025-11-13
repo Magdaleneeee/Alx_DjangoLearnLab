@@ -1,9 +1,5 @@
-```markdown
 # Retrieve Book
 
-```python
-from bookshelf.models import Book
-books = Book.objects.all()
-for book in books:
-    print(book)
-# Output: 1984 by George Orwell (1949)
+book = Book.objects.get(title="1984")
+book
+# Output: <Book: 1984> with author="George Orwell" and publication_year=1949
