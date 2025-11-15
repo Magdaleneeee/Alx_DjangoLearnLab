@@ -1,4 +1,3 @@
-# ALX-friendly views.py (includes register)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.detail import DetailView
 from django.http import HttpResponse
@@ -19,11 +18,18 @@ def list_books_text(request):
         response += f"{book.title} by {book.author.name}\n"
     return HttpResponse(response, content_type="text/plain")
 
-# Class-based detail view for a specific Library
+# Class-based detail view for a specific Library + its books
 class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add all books belonging to this Library
+        context['books'] = self.object.books.all()
+        return context
+
 
 # Registration view using Django's UserCreationForm
 def register(request):
