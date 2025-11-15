@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login as auth_login
 from .models import Book, Library
+from .models import Library
 
 # Function-based view: list all books and render template
 def list_books(request):
