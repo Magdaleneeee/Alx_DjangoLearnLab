@@ -8,3 +8,10 @@ router.register(r'books', BookViewSet, basename='book')
 urlpatterns = [
     path('', include(router.urls)),
 ]
+
+from django.urls import path
+from .views import BookList
+
+urlpatterns = [
+    path('books/', BookList.as_view(), name='book-list'),
+]
