@@ -1,15 +1,19 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics, permissions
 from .models import Book
 from .serializers import BookSerializer
 
 class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
+    """
+    Full CRUD for Book available via router (e.g. /api/books_all/).
+    """
+    queryset = Book.objects.all().order_by('id')
     serializer_class = BookSerializer
-    
-from rest_framework import generics
-from .models import Book
-from .serializers import BookSerializer
+    permission_classes = [permissions.AllowAny]  # easier for testing
 
 class BookList(generics.ListAPIView):
-    queryset = Book.objects.all()
+    """
+    Existing read-only list endpoint (keeps /books/ working).
+    """
+    queryset = Book.objects.all().order_by('id')
     serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]
