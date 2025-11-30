@@ -26,33 +26,33 @@ from .models import Book
 from .serializers import BookSerializer
 
 
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 class BookListView(generics.ListAPIView):
     """
     GET /api/books/
-    Public read. Authenticated or not.
-    Supports filtering by:
-       ?author=<id>
-       ?year=<publication_year>
+    - Filtering via ?author=&?publication_year=&?title=
+    - Search via ?search=keyword  (searches title and author name)
+    - Ordering via ?ordering=title or ?ordering=-publication_year
     """
     queryset = Book.objects.all().order_by('-created_at')
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        author = self.request.query_params.get('author')
-        year = self.request.query_params.get('year')
+    # Enable filtering, searching, ordering
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
-        if author:
-            qs = qs.filter(author_id=author)
+    # Filterable fields
+    filterset_fields = ['author', 'publication_year', 'title']
 
-        if year:
-            try:
-                qs = qs.filter(publication_year=int(year))
-            except ValueError:
-                pass  # ignore invalid year input
+    # Searchable fields
+    search_fields = ['title', 'author__name']
 
-        return qs
+    # Orderable fields
+    ordering_fields = ['title', 'publication_year', 'created_at']
+
 
 
 class BookDetailView(generics.RetrieveAPIView):

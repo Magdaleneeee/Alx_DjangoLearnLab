@@ -13,6 +13,15 @@ Filtering:
 - /api/books/?author=<id>
 - /api/books/?year=<year>
 
+Filtering, search, and ordering:
+
+- Filtering: ?author=<id>, ?publication_year=<year>, ?title=<value>
+- Searching: ?search=<term>  (searches title and author name)
+- Ordering: ?ordering=<field> (prefix with '-' for descending). Fields: title, publication_year, created_at
+
+Examples:
+  /api/books/?author=1&search=novel&ordering=-publication_year
+
 Validation:
 - publication_year cannot be in the future (BookSerializer)
 
