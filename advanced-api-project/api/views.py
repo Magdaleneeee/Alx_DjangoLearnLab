@@ -1,27 +1,26 @@
 # api/views.py
+
 """
-Generic views for Book model using Django REST Framework generics.
-This file provides:
- - BookListView    : list all books (read-only for unauthenticated users)
- - BookDetailView  : retrieve a single book by pk (read-only)
- - BookCreateView  : create a new Book (authenticated users only)
- - BookUpdateView  : update a Book (authenticated users only)
- - BookDeleteView  : delete a Book (authenticated users only)
- 
-Customization details:
- - List view supports simple query params for filtering:
-     ?author=<author_id>   -> filter by author id
-     ?year=<publication_year> -> filter by publication year
- - Create/Update views rely on the BookSerializer for validation (publication_year check).
- - Create/Update override perform_create/perform_update hooks if you need extra behavior.
- - Permissions:
-     - List/Detail: AllowAny (read-only)
-     - Create/Update/Delete: IsAuthenticated
+Generic views for the Book model using Django REST Framework.
+
+This file includes:
+ - BookListView:        List all books (read allowed for everyone)
+ - BookDetailView:      Retrieve a single book
+ - BookCreateView:      Create a new book (authenticated only)
+ - BookUpdateView:      Update a book (authenticated only)
+ - BookDeleteView:      Delete a book (authenticated only)
+
+Permissions:
+ - ListView & DetailView → IsAuthenticatedOrReadOnly
+ - Create, Update, Delete → IsAuthenticated
+
+We use Django REST Framework generics for clean, efficient CRUD.
+Filtering on ListView supports ?author=&?year=.
 """
 
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 from .models import Book
 from .serializers import BookSerializer
@@ -30,88 +29,74 @@ from .serializers import BookSerializer
 class BookListView(generics.ListAPIView):
     """
     GET /api/books/
-    Returns a paginated list of books (or full list depending on your settings).
-    Accepts optional query params:
-      - author=<author_id>       (filter books by author id)
-      - year=<publication_year>  (filter books by publication year)
+    Public read. Authenticated or not.
+    Supports filtering by:
+       ?author=<id>
+       ?year=<publication_year>
     """
     queryset = Book.objects.all().order_by('-created_at')
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        """
-        Optionally filter queryset by 'author' or 'year' query params.
-        Keep the default ordering by newest first.
-        """
         qs = super().get_queryset()
         author = self.request.query_params.get('author')
         year = self.request.query_params.get('year')
+
         if author:
             qs = qs.filter(author_id=author)
+
         if year:
             try:
-                year_int = int(year)
-                qs = qs.filter(publication_year=year_int)
+                qs = qs.filter(publication_year=int(year))
             except ValueError:
-                # ignore invalid year filter (alternatively, raise a 400)
-                pass
+                pass  # ignore invalid year input
+
         return qs
 
 
 class BookDetailView(generics.RetrieveAPIView):
     """
-    GET /api/books/<pk>/
-    Retrieve a single Book by primary key.
+    GET /api/books/<id>/
+    Public read.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class BookCreateView(generics.CreateAPIView):
     """
     POST /api/books/create/
-    Create a new Book. Only authenticated users can create.
-    Uses BookSerializer which handles validation of publication_year.
-    If you need to link the created book to request.user or apply other rules,
-    override perform_create() here.
+    Authenticated users only.
+    Uses serializer validation for publication_year.
     """
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Hook to customize save behavior. Right now we just save normally.
-        You could, for example, set an extra field automatically:
-            serializer.save(created_by=self.request.user)
-        """
+        # Could add custom logic here (e.g., set created_by)
         serializer.save()
 
 
 class BookUpdateView(generics.UpdateAPIView):
     """
-    PUT/PATCH /api/books/<pk>/update/
-    Update an existing Book. Only authenticated users can update.
-    Uses BookSerializer for validation.
+    PUT /api/books/<id>/update/
+    Authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
-        """
-        Hook for custom update logic. For example, log the user who updated:
-            serializer.save(updated_by=self.request.user)
-        """
         serializer.save()
 
 
 class BookDeleteView(generics.DestroyAPIView):
     """
-    DELETE /api/books/<pk>/delete/
-    Delete a Book. Only authenticated users can delete.
+    DELETE /api/books/<id>/delete/
+    Authenticated users only.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
