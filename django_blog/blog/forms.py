@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
+from .models import Post
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -31,3 +32,14 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username', 'email')
+
+
+class PostForm(forms.ModelForm):
+    """
+    ModelForm for creating and updating blog posts.
+    The author field is set automatically from the logged-in user
+    in the Create/Update views (not exposed in the form).
+    """
+    class Meta:
+        model = Post
+        fields = ('title', 'content')

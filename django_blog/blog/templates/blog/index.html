@@ -2,5 +2,18 @@
 
 {% block content %}
 <h2>Welcome to the blog</h2>
-<p>This is the initial Django blog setup.</p>
+
+<p><a href="{% url 'post-list' %}">View all posts</a></p>
+
+{% if posts %}
+  <h3>Latest posts</h3>
+  <ul>
+    {% for post in posts %}
+      <li>
+        <a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a>
+        — {{ post.author.username }} ({{ post.published_date|date:"Y-m-d" }})
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
 {% endblock %}
