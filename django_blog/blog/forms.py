@@ -1,9 +1,9 @@
-# blog/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Post
+from .models import Post, Comment
+
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -37,9 +37,21 @@ class UserUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     """
     ModelForm for creating and updating blog posts.
-    The author field is set automatically from the logged-in user
-    in the Create/Update views (not exposed in the form).
+    Author is set automatically in the views.
     """
     class Meta:
         model = Post
         fields = ('title', 'content')
+
+
+class CommentForm(forms.ModelForm):
+    """
+    ModelForm for creating/updating comments.
+    Author and post are set in the view; only content is editable.
+    """
+    class Meta:
+        model = Comment
+        fields = ('content',)
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3}),
+        }

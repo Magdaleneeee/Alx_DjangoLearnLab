@@ -6,10 +6,10 @@ from django.urls import reverse
 class Post(models.Model):
     """
     Blog post model:
-      - title: short title for the post.
-      - content: main body text.
-      - published_date: timestamp when the post was created.
-      - author: link to Django's built-in User; one user can have many posts.
+      - title: post title
+      - content: full body text
+      - published_date: timestamp when created
+      - author: FK to User; one user can have many posts
     """
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -23,9 +23,35 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
-def get_absolute_url(self):
+    def get_absolute_url(self):
         """
-        Used by Django's generic CreateView/UpdateView to know where to redirect
-        after successfully saving a Post.
+        Used by generic views to know where to redirect
+        after create/update.
         """
         return reverse('post-detail', kwargs={'pk': self.pk})
+
+
+class Comment(models.Model):
+    """
+    Comment model attached to a specific Post.
+    - post: FK to Post (many comments per post)
+    - author: FK to User (many comments per user)
+    - content: the comment text
+    - created_at: when comment was created
+    - updated_at: when comment was last edited
+    """
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.post}"
+
+    def get_absolute_url(self):
+        """
+        After creating/updating/deleting a comment,
+        go back to the post detail page.
+        """
+        return self.post.get_absolute_url()
