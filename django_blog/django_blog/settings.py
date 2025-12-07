@@ -125,6 +125,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Authentication redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'blog-index'   # after successful login
+LOGOUT_REDIRECT_URL = 'login'      # after logout
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

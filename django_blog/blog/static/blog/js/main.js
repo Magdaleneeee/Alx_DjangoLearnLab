@@ -1,1 +1,1 @@
-console.log("Django blog static JS loaded.");
+console.log("Blog static JS loaded");

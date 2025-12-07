@@ -4,11 +4,11 @@ from django.contrib.auth.models import User
 
 class Post(models.Model):
     """
-    Blog post model:
-      - title: short title for the post.
-      - content: main body text.
-      - published_date: timestamp when the post was created.
-      - author: link to Django's built-in User; one user can have many posts.
+    Simple blog post model.
+    - title: post headline
+    - content: main body text
+    - published_date: timestamp when post is created
+    - author: link to Django's built-in User; a user can have many posts
     """
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -19,5 +19,5 @@ class Post(models.Model):
         related_name='posts'
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
