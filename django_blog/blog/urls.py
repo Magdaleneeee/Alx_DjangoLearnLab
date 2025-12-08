@@ -1,10 +1,12 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import PostByTagListView
 
 urlpatterns = [
     # Home
     path('', views.index, name='blog-index'),
+    path('tags/<slug:tag_slug>/', PostByTagListView.as_view(), name='posts_by_tag'),
 
     # Auth
     path('login/',  auth_views.LoginView.as_view(
