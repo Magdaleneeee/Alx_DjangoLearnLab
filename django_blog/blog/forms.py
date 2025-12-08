@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -38,10 +38,19 @@ class PostForm(forms.ModelForm):
     """
     ModelForm for creating and updating blog posts.
     Author is set automatically in the views.
+
+    'tags' is a simple CharField where the user can type
+    comma-separated tag names. The view will handle creating
+    Tag objects and associating them with the Post.
     """
+    tags = forms.CharField(
+        required=False,
+        help_text="Comma-separated tags, e.g. django, python, web",
+    )
+
     class Meta:
         model = Post
-        fields = ('title', 'content')
+        fields = ('title', 'content', 'tags')
 
 
 class CommentForm(forms.ModelForm):

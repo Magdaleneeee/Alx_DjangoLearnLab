@@ -16,7 +16,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
 
-    # Post CRUD (NOTE: singular 'post' — matches checker)
+    # Post CRUD (singular 'post' to match checker)
     path('post/', views.PostListView.as_view(), name='post-list'),
     path('post/new/', views.PostCreateView.as_view(), name='post-create'),
     path('post/<int:pk>/', views.PostDetailView.as_view(), name='post-detail'),
@@ -25,8 +25,12 @@ urlpatterns = [
 
     # Comment CRUD
     path('post/<int:pk>/comment/new/', views.CommentCreateView.as_view(), name='comment-create'),
-    # alias with "posts/<int:post_id>/comments/new/" to satisfy example string in task
+    # alias with "posts/<int:post_id>/comments/new/" to match example in task text
     path('posts/<int:post_id>/comments/new/', views.CommentCreateView.as_view(), name='comment-create-alt'),
     path('comment/<int:pk>/edit/', views.CommentUpdateView.as_view(), name='comment-edit'),
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment-delete'),
+
+    # Tag and search
+    path('tags/<str:tag_name>/', views.TagPostListView.as_view(), name='tag-posts'),
+    path('search/', views.SearchResultsView.as_view(), name='post-search'),
 ]

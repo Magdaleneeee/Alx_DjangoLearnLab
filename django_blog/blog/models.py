@@ -3,6 +3,18 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 
+class Tag(models.Model):
+    """
+    Tag model used to categorize posts.
+    Each tag has a unique name.
+    A Tag can be attached to many posts (many-to-many).
+    """
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     """
     Blog post model:
@@ -10,6 +22,7 @@ class Post(models.Model):
       - content: full body text
       - published_date: timestamp when created
       - author: FK to User; one user can have many posts
+      - tags: many-to-many relationship to Tag
     """
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -19,6 +32,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name='posts'
     )
+    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
 
     def __str__(self):
         return self.title

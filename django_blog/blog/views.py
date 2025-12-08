@@ -9,9 +9,10 @@ from django.views.generic import (
     DeleteView,
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Q
 
 from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 def index(request):
@@ -57,6 +58,25 @@ def profile(request):
 
 
 # -----------------------------
+# Helpers for tags
+# -----------------------------
+
+def _set_tags_for_post(post, tags_string):
+    """
+    Helper that parses a comma-separated string of tag names,
+    creates Tag objects if necessary, and assigns them to the post.
+    """
+    if tags_string is None:
+        tags_string = ""
+    tag_names = [t.strip() for t in tags_string.split(',') if t.strip()]
+    tag_objects = []
+    for name in tag_names:
+        tag, _created = Tag.objects.get_or_create(name=name)
+        tag_objects.append(tag)
+    post.tags.set(tag_objects)
+
+
+# -----------------------------
 # Class-based views for Post CRUD
 # -----------------------------
 
@@ -99,8 +119,12 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     template_name = 'blog/post_form.html'
 
     def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+        tags_string = form.cleaned_data.get('tags', '')
+        post = form.save(commit=False)
+        post.author = self.request.user
+        post.save()
+        _set_tags_for_post(post, tags_string)
+        return redirect(post.get_absolute_url())
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -112,9 +136,24 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = PostForm
     template_name = 'blog/post_form.html'
 
+    def get_initial(self):
+        """
+        Pre-fill the tags input with the current tags for this post
+        as a comma-separated list.
+        """
+        initial = super().get_initial()
+        post = self.get_object()
+        tag_names = post.tags.values_list('name', flat=True)
+        initial['tags'] = ', '.join(tag_names)
+        return initial
+
     def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+        tags_string = form.cleaned_data.get('tags', '')
+        post = form.save(commit=False)
+        post.author = self.request.user
+        post.save()
+        _set_tags_for_post(post, tags_string)
+        return redirect(post.get_absolute_url())
 
     def test_func(self):
         post = self.get_object()
@@ -193,3 +232,56 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return self.object.post.get_absolute_url()
+
+
+# -----------------------------
+# Tag-based post listing
+# -----------------------------
+
+class TagPostListView(ListView):
+    """
+    List posts that have a specific tag.
+    URL: /tags/<tag_name>/
+    """
+    model = Post
+    template_name = 'blog/tag_post_list.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        tag_name = self.kwargs['tag_name']
+        return Post.objects.filter(tags__name=tag_name).order_by('-published_date').distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag_name'] = self.kwargs['tag_name']
+        return context
+
+
+# -----------------------------
+# Search
+# -----------------------------
+
+class SearchResultsView(ListView):
+    """
+    Search for posts by title, content, or tag name.
+    URL: /search/?q=...
+    """
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        qs = Post.objects.all()
+        if query:
+            qs = qs.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
