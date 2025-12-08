@@ -2,7 +2,9 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Post, Comment, Tag
+from taggit.forms import TagWidget
+
+from .models import Post, Comment
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -13,11 +15,11 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ("username", "email", "password1", "password2")
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
+        user.email = self.cleaned_data["email"]
         if commit:
             user.save()
         return user
@@ -31,36 +33,25 @@ class UserUpdateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ("username", "email")
 
 
 class PostForm(forms.ModelForm):
-    """
-    ModelForm for creating and updating blog posts.
-    Author is set automatically in the views.
-
-    'tags' is a simple CharField where the user can type
-    comma-separated tag names. The view will handle creating
-    Tag objects and associating them with the Post.
-    """
-    tags = forms.CharField(
-        required=False,
-        help_text="Comma-separated tags, e.g. django, python, web",
-    )
-
     class Meta:
         model = Post
-        fields = ('title', 'content', 'tags')
-
+        fields = ['title', 'content', 'tags']
+        widgets = {
+            'tags': TagWidget(),   
+        }
 
 class CommentForm(forms.ModelForm):
-    """
-    ModelForm for creating/updating comments.
-    Author and post are set in the view; only content is editable.
-    """
     class Meta:
         model = Comment
-        fields = ('content',)
+        fields = ['content']
+
+    class Meta:
+        model = Comment
+        fields = ("content",)
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3}),
+            "content": forms.Textarea(attrs={"rows": 3}),
         }

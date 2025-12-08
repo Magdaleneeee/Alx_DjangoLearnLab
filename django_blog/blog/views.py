@@ -12,31 +12,30 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
 
 from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm
-from .models import Post, Comment, Tag
+from .models import Post, Comment
 
 
 def index(request):
     """
     Home page: show latest posts and link to full list.
     """
-    posts = Post.objects.all().order_by('-published_date')[:5]
-    return render(request, 'blog/index.html', {'posts': posts})
+    posts = Post.objects.all().order_by("-published_date")[:5]
+    return render(request, "blog/index.html", {"posts": posts})
 
 
 def register(request):
     """
     User registration view.
     """
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Your account has been created. You can now log in.')
-            return redirect('login')
+            messages.success(request, "Your account has been created. You can now log in.")
+            return redirect("login")
     else:
         form = CustomUserCreationForm()
-
-    return render(request, 'blog/register.html', {'form': form})
+    return render(request, "blog/register.html", {"form": form})
 
 
 @login_required
@@ -45,40 +44,21 @@ def profile(request):
     Profile view: allows authenticated users to view and edit
     their username and email.
     """
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Your profile has been updated.')
-            return redirect('profile')
+            messages.success(request, "Your profile has been updated.")
+            return redirect("profile")
     else:
         form = UserUpdateForm(instance=request.user)
-
-    return render(request, 'blog/profile.html', {'form': form})
-
-
-# -----------------------------
-# Helpers for tags
-# -----------------------------
-
-def _set_tags_for_post(post, tags_string):
-    """
-    Helper that parses a comma-separated string of tag names,
-    creates Tag objects if necessary, and assigns them to the post.
-    """
-    if tags_string is None:
-        tags_string = ""
-    tag_names = [t.strip() for t in tags_string.split(',') if t.strip()]
-    tag_objects = []
-    for name in tag_names:
-        tag, _created = Tag.objects.get_or_create(name=name)
-        tag_objects.append(tag)
-    post.tags.set(tag_objects)
+    return render(request, "blog/profile.html", {"form": form})
 
 
 # -----------------------------
-# Class-based views for Post CRUD
+# Post CRUD views
 # -----------------------------
+
 
 class PostListView(ListView):
     """
@@ -87,9 +67,9 @@ class PostListView(ListView):
     URL: /post/
     """
     model = Post
-    template_name = 'blog/post_list.html'
-    context_object_name = 'posts'
-    ordering = ['-published_date']
+    template_name = "blog/post_list.html"
+    context_object_name = "posts"
+    ordering = ["-published_date"]
 
 
 class PostDetailView(DetailView):
@@ -98,14 +78,14 @@ class PostDetailView(DetailView):
     URL: /post/<pk>/
     """
     model = Post
-    template_name = 'blog/post_detail.html'
-    context_object_name = 'post'
+    template_name = "blog/post_detail.html"
+    context_object_name = "post"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.object
-        context['comments'] = post.comments.order_by('-created_at')
-        context['comment_form'] = CommentForm()
+        context["comments"] = post.comments.order_by("-created_at")
+        context["comment_form"] = CommentForm()
         return context
 
 
@@ -116,15 +96,11 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     """
     model = Post
     form_class = PostForm
-    template_name = 'blog/post_form.html'
+    template_name = "blog/post_form.html"
 
     def form_valid(self, form):
-        tags_string = form.cleaned_data.get('tags', '')
-        post = form.save(commit=False)
-        post.author = self.request.user
-        post.save()
-        _set_tags_for_post(post, tags_string)
-        return redirect(post.get_absolute_url())
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -134,26 +110,11 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     model = Post
     form_class = PostForm
-    template_name = 'blog/post_form.html'
-
-    def get_initial(self):
-        """
-        Pre-fill the tags input with the current tags for this post
-        as a comma-separated list.
-        """
-        initial = super().get_initial()
-        post = self.get_object()
-        tag_names = post.tags.values_list('name', flat=True)
-        initial['tags'] = ', '.join(tag_names)
-        return initial
+    template_name = "blog/post_form.html"
 
     def form_valid(self, form):
-        tags_string = form.cleaned_data.get('tags', '')
-        post = form.save(commit=False)
-        post.author = self.request.user
-        post.save()
-        _set_tags_for_post(post, tags_string)
-        return redirect(post.get_absolute_url())
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
     def test_func(self):
         post = self.get_object()
@@ -166,8 +127,8 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     URL: /post/<pk>/delete/
     """
     model = Post
-    template_name = 'blog/post_confirm_delete.html'
-    success_url = '/post/'
+    template_name = "blog/post_confirm_delete.html"
+    success_url = "/post/"
 
     def test_func(self):
         post = self.get_object()
@@ -178,18 +139,18 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # Comment views
 # -----------------------------
 
+
 class CommentCreateView(LoginRequiredMixin, CreateView):
     """
     Create a new comment for a given post.
     URL: /post/<pk>/comment/new/
-    (Also supports alias /posts/<int:post_id>/comments/new/ for checker.)
     """
     model = Comment
     form_class = CommentForm
-    template_name = 'blog/comment_form.html'
+    template_name = "blog/comment_form.html"
 
     def form_valid(self, form):
-        post_id = self.kwargs.get('pk') or self.kwargs.get('post_id')
+        post_id = self.kwargs.get("pk") or self.kwargs.get("post_id")
         post = get_object_or_404(Post, pk=post_id)
         form.instance.post = post
         form.instance.author = self.request.user
@@ -207,7 +168,7 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     model = Comment
     form_class = CommentForm
-    template_name = 'blog/comment_form.html'
+    template_name = "blog/comment_form.html"
 
     def test_func(self):
         comment = self.get_object()
@@ -224,7 +185,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     URL: /comment/<pk>/delete/
     """
     model = Comment
-    template_name = 'blog/comment_confirm_delete.html'
+    template_name = "blog/comment_confirm_delete.html"
 
     def test_func(self):
         comment = self.get_object()
@@ -238,22 +199,27 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # Tag-based post listing
 # -----------------------------
 
+
 class TagPostListView(ListView):
     """
     List posts that have a specific tag.
     URL: /tags/<tag_name>/
     """
     model = Post
-    template_name = 'blog/tag_post_list.html'
-    context_object_name = 'posts'
+    template_name = "blog/tag_post_list.html"
+    context_object_name = "posts"
 
     def get_queryset(self):
-        tag_name = self.kwargs['tag_name']
-        return Post.objects.filter(tags__name=tag_name).order_by('-published_date').distinct()
+        tag_name = self.kwargs["tag_name"]
+        return (
+            Post.objects.filter(tags__name__iexact=tag_name)
+            .order_by("-published_date")
+            .distinct()
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tag_name'] = self.kwargs['tag_name']
+        context["tag_name"] = self.kwargs["tag_name"]
         return context
 
 
@@ -261,27 +227,28 @@ class TagPostListView(ListView):
 # Search
 # -----------------------------
 
+
 class SearchResultsView(ListView):
     """
     Search for posts by title, content, or tag name.
     URL: /search/?q=...
     """
     model = Post
-    template_name = 'blog/search_results.html'
-    context_object_name = 'posts'
+    template_name = "blog/search_results.html"
+    context_object_name = "posts"
 
     def get_queryset(self):
-        query = self.request.GET.get('q', '')
+        query = self.request.GET.get("q", "")
         qs = Post.objects.all()
         if query:
             qs = qs.filter(
-                Q(title__icontains=query) |
-                Q(content__icontains=query) |
-                Q(tags__name__icontains=query)
+                Q(title__icontains=query)
+                | Q(content__icontains=query)
+                | Q(tags__name__icontains=query)
             ).distinct()
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
+        context["query"] = self.request.GET.get("q", "")
         return context

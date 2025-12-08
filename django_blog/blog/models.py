@@ -1,18 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
-
-
-class Tag(models.Model):
-    """
-    Tag model used to categorize posts.
-    Each tag has a unique name.
-    A Tag can be attached to many posts (many-to-many).
-    """
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
+from taggit.managers import TaggableManager
 
 
 class Post(models.Model):
@@ -22,7 +11,7 @@ class Post(models.Model):
       - content: full body text
       - published_date: timestamp when created
       - author: FK to User; one user can have many posts
-      - tags: many-to-many relationship to Tag
+      - tags: Taggit TaggableManager for tagging
     """
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -32,7 +21,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name='posts'
     )
-    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
+    tags = TaggableManager(blank=True)
 
     def __str__(self):
         return self.title
