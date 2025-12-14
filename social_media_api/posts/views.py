@@ -44,13 +44,7 @@ class FeedView(generics.GenericAPIView):
 def like_post(request, pk):
     post = generics.get_object_or_404(Post, pk=pk)
 
-    like, created = Like.objects.get_or_create(
-        user=request.user,
-        post=post
-    )
-
-    if not created:
-        return Response({"detail": "Already liked"}, status=400)
+    like = Like.objects.get_or_create(user=request.user, post=post)
 
     if post.author != request.user:
         Notification.objects.create(
@@ -61,7 +55,7 @@ def like_post(request, pk):
         )
 
     return Response({"detail": "Post liked"})
-
+    
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
