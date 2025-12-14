@@ -2,8 +2,6 @@ from rest_framework import viewsets, generics, permissions, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from django.shortcuts import get_object_or_404
-from django.contrib.contenttypes.models import ContentType
 
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
@@ -44,8 +42,12 @@ class FeedView(generics.GenericAPIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def like_post(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    post = generics.get_object_or_404(Post, pk=pk)
+
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        post=post
+    )
 
     if not created:
         return Response({"detail": "Already liked"}, status=400)
@@ -64,7 +66,8 @@ def like_post(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def unlike_post(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+    post = generics.get_object_or_404(Post, pk=pk)
+
     like = Like.objects.filter(user=request.user, post=post)
 
     if not like.exists():
