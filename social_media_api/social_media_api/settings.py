@@ -66,6 +66,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -97,6 +99,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Production storage placeholder (e.g. AWS S3)
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
