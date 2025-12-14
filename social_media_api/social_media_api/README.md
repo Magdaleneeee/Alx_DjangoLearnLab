@@ -15,3 +15,16 @@
 ### Permissions
 - Only authors can edit or delete their posts and comments
 - Authentication is required for all endpoints
+
+## Follow & Feed API
+
+### Follow a user
+POST /api/accounts/follow/{user_id}/
+
+### Unfollow a user
+POST /api/accounts/unfollow/{user_id}/
+
+### Feed
+GET /api/feed/
+
+The feed returns posts from users that the authenticated user follows, ordered by most recent first.
