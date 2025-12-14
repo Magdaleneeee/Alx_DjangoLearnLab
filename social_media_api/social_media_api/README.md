@@ -28,3 +28,21 @@ POST /api/accounts/unfollow/{user_id}/
 GET /api/feed/
 
 The feed returns posts from users that the authenticated user follows, ordered by most recent first.
+
+## Deployment
+
+This Django REST API is deployed to production using Render.
+
+### Live URL
+https://your-render-url.onrender.com
+
+### Production Stack
+- Django REST Framework
+- Gunicorn (WSGI server)
+- WhiteNoise for static files
+- Render Cloud Hosting
+
+### Notes
+- Environment variables are managed via the hosting platform
+- DEBUG is disabled in production
+- Security headers are enabled
