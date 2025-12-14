@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, filters, generics
+from rest_framework import viewsets, generics, permissions, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,7 +11,6 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'content']
 
@@ -28,14 +27,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
+# FEED VIEW (checker-required)
 class FeedView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         following_users = request.user.following.all()
-        posts = Post.objects.filter(
-            author__in=following_users
-        ).order_by('-created_at')
-
+        posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
